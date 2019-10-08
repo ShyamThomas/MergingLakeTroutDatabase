@@ -2,28 +2,25 @@ ibrary(dplyr)
 library(corrplot)
 library(PerformanceAnalytics)
 
-setwd("C:/Users/thoma/Rprojects/Databases")
+setwd("C:/Users/thoma/Rprojects/Databases/IsotopeData.csv")
 
+HGdata=read.csv("HGdataMergedBSM_LUT.csv")
+head(HGdata)
+HGdata.lt=subset(HGdata, HGdata$SPECIES_NAME=="Lake Trout")
 
-WATERCHEM2BSMLAKECHAR=merge(x=WATER_CHEM, y = BSM_LAKE_CHARS, by = "WATERBODY_LID")
-head(WATERCHEM2BSMLAKECHAR)
-length(WATERCHEM2BSMLAKECHAR[,1])
+HGdata.lt0812=subset(HGdata.lt, HGdata.lt$SAMPLE_YEAR>=2008 & HGdata.lt$SAMPLE_YEAR<=2012)
+hist(HGdata.lt0812$SAMPLE_YEAR)
 
-trout_tl=read.csv("LTdata_Tyler.csv") # Tyler's Lake Trout data with Trophic position
+LTisodata=read.csv("LTdata_Tyler.csv")
+tail(LTisodata)
 
+LTHGisodata.rightjoin=right_join(HGdata.lt0812,LTisodata, by ="Waterbody_LID")
 
-LT_TROPHIC2WATERCHEMLAKECHARS=merge(WATERCHEM2BSMLAKECHAR, trout_tl, by="WATERBODY_LID", all.y = TRUE)
-head(LT_TROPHIC2WATERCHEMLAKECHARS)
+write.csv(LTHGisodata.rightjoin, "LTHGisodata.rj.csv")
 
+LTHGisodata.rightjoin.narmd=na.omit(LTHGisodata.rightjoin)
 
-HG_AGE_LT=read.csv("HG_AGE_LT_Linked.csv") #Mercury data with Lake Trout selected
-head(HG_AGE_LT)
-
-
-HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHARS=merge(x=LT_TROPHIC2WATERCHEMLAKECHARS, y = HG_AGE_LT, by = "WATERBODY_LID")
-head(HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHARS)
-length(HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHARS[,1])
-
+########################################################################################################################################
 
 AGG_HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHARS=HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHARS %>%
 group_by(WATERBODY_LID) %>%
@@ -53,12 +50,4 @@ LTmerged.correlation=chart.Correlation(AGG_HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHA
 
 ################################################################################################################################
 
-library(ggplot2)
-
-###PH & HG
-ggplot(data = AGG_HG_AGE_LT2LT_TROPHIC_WATERCHEMLAKECHARS.DF, aes(x = avgPH, y = avgHG)) +
-geom_point(color='blue') +
-geom_smooth(method = "lm")
-
-###DOC & HG
 
